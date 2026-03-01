@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Shield, Mail, Key, Globe, Users, Trophy, Target, Zap } from "lucide-react";
+import { Shield, Mail, Key, Globe, Users, Trophy, Target, Zap, ArrowRight } from "lucide-react";
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -32,20 +32,28 @@ const Dashboard = () => {
   const radarData = scenarios.map((s) => ({ subject: s.title.split(" ")[0], score: progress.scores[s.id] || 0, fullMark: 100 }));
   const barData = scenarios.map((s) => ({ name: s.title.split(" ")[0], score: progress.scores[s.id] || 0 }));
   const completedCount = progress.completedScenarios.length;
+  const nextScenario = scenarios.find((s) => !progress.completedScenarios.includes(s.id)) ?? scenarios[0];
 
   return (
     <DashboardLayout>
       <PageTransition>
         <div className="space-y-8">
           {/* Welcome header */}
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="space-y-3">
               <h1 className="text-2xl font-mono font-bold text-foreground">
                 Welcome back, <span className="text-primary text-glow">{progress.username}</span>
               </h1>
               <p className="text-muted-foreground font-mono text-sm mt-1">Continue your cybersecurity training</p>
+              <Link
+                to={nextScenario.path}
+                className="inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-mono text-primary hover:bg-primary/20 transition-colors"
+              >
+                Continue: {nextScenario.title}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
-            <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-4 py-2">
+            <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-4 py-2 h-fit">
               <Trophy className="h-5 w-5 text-accent" />
               <span className="font-mono font-bold text-accent">{progress.totalScore}</span>
               <span className="font-mono text-xs text-muted-foreground">pts</span>
@@ -106,13 +114,16 @@ const Dashboard = () => {
                 const score = progress.scores[scenario.id];
                 return (
                   <motion.div key={scenario.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }}>
-                    <Link to={scenario.path} className={`block bg-card border ${scenario.borderColor} rounded-lg p-6 hover:border-primary/50 transition-all group`}>
+                    <Link to={scenario.path} className={`block bg-card border ${scenario.borderColor} rounded-lg p-6 hover:border-primary/50 hover:bg-card/80 transition-all group`}>
                       <div className="flex items-start justify-between mb-4">
                         <Icon className={`h-8 w-8 ${scenario.color}`} />
                         {completed && <span className="text-xs font-mono bg-primary/10 text-primary px-2 py-1 rounded">{score}%</span>}
                       </div>
                       <h3 className="font-mono font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">{scenario.title}</h3>
                       <p className="text-sm text-muted-foreground">{scenario.description}</p>
+                      <p className="text-xs font-mono text-primary/80 mt-3 inline-flex items-center gap-1">
+                        {completed ? "Retry module" : "Start module"} <ArrowRight className="h-3.5 w-3.5" />
+                      </p>
                     </Link>
                   </motion.div>
                 );
