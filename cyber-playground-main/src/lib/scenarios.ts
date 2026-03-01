@@ -142,6 +142,6 @@ export const passwordCriteria = [
   { id: "uppercase", label: "Contains uppercase letter", test: (p: string) => /[A-Z]/.test(p) },
   { id: "lowercase", label: "Contains lowercase letter", test: (p: string) => /[a-z]/.test(p) },
   { id: "number", label: "Contains a number", test: (p: string) => /\d/.test(p) },
-  { id: "special", label: "Contains special character", test: (p: string) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p) },
+  { id: "special", label: "Contains special character", test: (p: string) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(p) },
   { id: "no-common", label: "Not a common password", test: (p: string) => !commonPasswords.includes(p.toLowerCase()) },
 ];

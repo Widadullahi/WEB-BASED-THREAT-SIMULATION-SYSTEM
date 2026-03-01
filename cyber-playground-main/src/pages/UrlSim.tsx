@@ -10,11 +10,15 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { urlChallenges } from "@/lib/scenarios";
+import { urlChallenges, type UrlChallenge } from "@/lib/scenarios";
 import { getProgress, updateScore } from "@/lib/progress";
+import { shuffleArray } from "@/lib/utils";
 
 const UrlSim = () => {
   const navigate = useNavigate();
+  const [sessionChallenges, setSessionChallenges] = useState<UrlChallenge[]>(
+    () => shuffleArray(urlChallenges),
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, boolean | null>>({});
   const [showFeedback, setShowFeedback] = useState(false);
@@ -24,7 +28,7 @@ const UrlSim = () => {
     if (!getProgress()) navigate("/");
   }, [navigate]);
 
-  const challenge = urlChallenges[currentIndex];
+  const challenge = sessionChallenges[currentIndex];
   const answered = answers[challenge.id] !== undefined;
 
   const handleAnswer = (isMalicious: boolean) => {
@@ -38,17 +42,18 @@ const UrlSim = () => {
 
   const handleNext = () => {
     setShowFeedback(false);
-    if (currentIndex < urlChallenges.length - 1) {
+    if (currentIndex < sessionChallenges.length - 1) {
       setCurrentIndex((i) => i + 1);
     } else {
       const correct = Object.values(answers).filter(Boolean).length;
-      const score = Math.round((correct / urlChallenges.length) * 100);
+      const score = Math.round((correct / sessionChallenges.length) * 100);
       updateScore("malicious-url", score);
       setFinished(true);
     }
   };
 
   const handleRestart = () => {
+    setSessionChallenges(shuffleArray(urlChallenges));
     setCurrentIndex(0);
     setAnswers({});
     setShowFeedback(false);
@@ -57,7 +62,7 @@ const UrlSim = () => {
 
   if (finished) {
     const correct = Object.values(answers).filter(Boolean).length;
-    const score = Math.round((correct / urlChallenges.length) * 100);
+    const score = Math.round((correct / sessionChallenges.length) * 100);
     return (
       <DashboardLayout>
         <div className="max-w-lg mx-auto text-center space-y-6">
@@ -71,7 +76,7 @@ const UrlSim = () => {
             {score}%
           </p>
           <p className="text-muted-foreground">
-            You correctly identified {correct} out of {urlChallenges.length}{" "}
+            You correctly identified {correct} out of {sessionChallenges.length}{" "}
             URLs.
           </p>
           <div className="flex gap-4 justify-center">
@@ -102,7 +107,7 @@ const UrlSim = () => {
             Malicious URL Scanner
           </h2>
           <span className="font-mono text-sm text-muted-foreground">
-            {currentIndex + 1} / {urlChallenges.length}
+            {currentIndex + 1} / {sessionChallenges.length}
           </span>
         </div>
 
@@ -110,7 +115,7 @@ const UrlSim = () => {
           <div
             className="h-full bg-primary transition-all duration-500"
             style={{
-              width: `${((currentIndex + (answered ? 1 : 0)) / urlChallenges.length) * 100}%`,
+              width: `${((currentIndex + (answered ? 1 : 0)) / sessionChallenges.length) * 100}%`,
             }}
           />
         </div>
@@ -171,7 +176,7 @@ const UrlSim = () => {
               onClick={handleNext}
               className="mt-2 bg-primary text-primary-foreground px-4 py-2 rounded-md font-mono text-sm glow-primary"
             >
-              {currentIndex < urlChallenges.length - 1
+              {currentIndex < sessionChallenges.length - 1
                 ? "Next URL →"
                 : "See Results →"}
             </button>

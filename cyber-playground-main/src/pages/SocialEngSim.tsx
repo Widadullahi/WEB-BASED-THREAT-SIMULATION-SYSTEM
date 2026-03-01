@@ -16,6 +16,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import PageTransition from "@/components/PageTransition";
 import { socialEngScenarios, type SocialEngScenario } from "@/lib/social-scenarios";
 import { getProgress, updateScore } from "@/lib/progress";
+import { shuffleArray } from "@/lib/utils";
 
 const typeIcon = (type: SocialEngScenario["type"]) => {
   switch (type) {
@@ -27,6 +28,9 @@ const typeIcon = (type: SocialEngScenario["type"]) => {
 
 const SocialEngSim = () => {
   const navigate = useNavigate();
+  const [sessionScenarios, setSessionScenarios] = useState<SocialEngScenario[]>(
+    () => shuffleArray(socialEngScenarios),
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, boolean | null>>({});
   const [showFeedback, setShowFeedback] = useState(false);
@@ -36,7 +40,7 @@ const SocialEngSim = () => {
     if (!getProgress()) navigate("/");
   }, [navigate]);
 
-  const scenario = socialEngScenarios[currentIndex];
+  const scenario = sessionScenarios[currentIndex];
   const answered = answers[scenario.id] !== undefined;
   const Icon = typeIcon(scenario.type);
 
@@ -48,17 +52,18 @@ const SocialEngSim = () => {
 
   const handleNext = () => {
     setShowFeedback(false);
-    if (currentIndex < socialEngScenarios.length - 1) {
+    if (currentIndex < sessionScenarios.length - 1) {
       setCurrentIndex((i) => i + 1);
     } else {
       const correct = Object.values(answers).filter(Boolean).length;
-      const score = Math.round((correct / socialEngScenarios.length) * 100);
+      const score = Math.round((correct / sessionScenarios.length) * 100);
       updateScore("social-engineering", score);
       setFinished(true);
     }
   };
 
   const handleRestart = () => {
+    setSessionScenarios(shuffleArray(socialEngScenarios));
     setCurrentIndex(0);
     setAnswers({});
     setShowFeedback(false);
@@ -67,7 +72,7 @@ const SocialEngSim = () => {
 
   if (finished) {
     const correct = Object.values(answers).filter(Boolean).length;
-    const score = Math.round((correct / socialEngScenarios.length) * 100);
+    const score = Math.round((correct / sessionScenarios.length) * 100);
     return (
       <DashboardLayout>
         <PageTransition>
@@ -78,7 +83,7 @@ const SocialEngSim = () => {
             <h2 className="text-2xl font-mono font-bold text-foreground">Simulation Complete</h2>
             <p className="font-mono text-4xl font-bold text-primary text-glow">{score}%</p>
             <p className="text-muted-foreground">
-              You correctly identified {correct} out of {socialEngScenarios.length} scenarios.
+              You correctly identified {correct} out of {sessionScenarios.length} scenarios.
             </p>
             <div className="flex gap-4 justify-center">
               <button onClick={handleRestart} className="flex items-center gap-2 bg-card border border-border px-4 py-2 rounded-md font-mono text-sm hover:border-primary transition-colors">
@@ -104,14 +109,14 @@ const SocialEngSim = () => {
               Social Engineering Detection
             </h2>
             <span className="font-mono text-sm text-muted-foreground">
-              {currentIndex + 1} / {socialEngScenarios.length}
+              {currentIndex + 1} / {sessionScenarios.length}
             </span>
           </div>
 
           <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-500"
-              style={{ width: `${((currentIndex + (answered ? 1 : 0)) / socialEngScenarios.length) * 100}%` }}
+              style={{ width: `${((currentIndex + (answered ? 1 : 0)) / sessionScenarios.length) * 100}%` }}
             />
           </div>
 
@@ -195,7 +200,7 @@ const SocialEngSim = () => {
                     </div>
                   )}
                   <button onClick={handleNext} className="mt-2 bg-primary text-primary-foreground px-4 py-2 rounded-md font-mono text-sm glow-primary">
-                    {currentIndex < socialEngScenarios.length - 1 ? "Next Scenario →" : "See Results →"}
+                    {currentIndex < sessionScenarios.length - 1 ? "Next Scenario →" : "See Results →"}
                   </button>
                 </motion.div>
               )}

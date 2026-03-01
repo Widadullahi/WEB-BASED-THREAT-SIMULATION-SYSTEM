@@ -4,20 +4,23 @@ import { Mail, AlertTriangle, CheckCircle, ArrowRight, RotateCcw } from "lucide-
 import DashboardLayout from "@/components/DashboardLayout";
 import { phishingEmails, type PhishingEmail } from "@/lib/scenarios";
 import { getProgress, updateScore } from "@/lib/progress";
+import { shuffleArray } from "@/lib/utils";
 
 const PhishingSim = () => {
   const navigate = useNavigate();
+  const [sessionEmails, setSessionEmails] = useState<PhishingEmail[]>(
+    () => shuffleArray(phishingEmails),
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, boolean | null>>({});
   const [showResult, setShowResult] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
     if (!getProgress()) navigate("/");
   }, [navigate]);
 
-  const email = phishingEmails[currentIndex];
+  const email = sessionEmails[currentIndex];
   const answered = answers[email.id] !== undefined;
 
   const handleAnswer = (isPhishing: boolean) => {
@@ -28,28 +31,27 @@ const PhishingSim = () => {
 
   const handleNext = () => {
     setShowFeedback(false);
-    if (currentIndex < phishingEmails.length - 1) {
+    if (currentIndex < sessionEmails.length - 1) {
       setCurrentIndex((i) => i + 1);
     } else {
       const correct = Object.values(answers).filter(Boolean).length;
-      const score = Math.round((correct / phishingEmails.length) * 100);
+      const score = Math.round((correct / sessionEmails.length) * 100);
       updateScore("phishing", score);
       setShowResult(true);
-      setFinished(true);
     }
   };
 
   const handleRestart = () => {
+    setSessionEmails(shuffleArray(phishingEmails));
     setCurrentIndex(0);
     setAnswers({});
     setShowResult(false);
     setShowFeedback(false);
-    setFinished(false);
   };
 
   if (showResult) {
     const correct = Object.values(answers).filter(Boolean).length;
-    const score = Math.round((correct / phishingEmails.length) * 100);
+    const score = Math.round((correct / sessionEmails.length) * 100);
     return (
       <DashboardLayout>
         <div className="max-w-lg mx-auto text-center space-y-6">
@@ -63,7 +65,7 @@ const PhishingSim = () => {
             {score}%
           </p>
           <p className="text-muted-foreground">
-            You correctly identified {correct} out of {phishingEmails.length} emails.
+            You correctly identified {correct} out of {sessionEmails.length} emails.
           </p>
           <div className="flex gap-4 justify-center">
             <button
@@ -93,7 +95,7 @@ const PhishingSim = () => {
             Phishing Detection
           </h2>
           <span className="font-mono text-sm text-muted-foreground">
-            {currentIndex + 1} / {phishingEmails.length}
+            {currentIndex + 1} / {sessionEmails.length}
           </span>
         </div>
 
@@ -102,7 +104,7 @@ const PhishingSim = () => {
           <div
             className="h-full bg-primary transition-all duration-500"
             style={{
-              width: `${((currentIndex + (answered ? 1 : 0)) / phishingEmails.length) * 100}%`,
+              width: `${((currentIndex + (answered ? 1 : 0)) / sessionEmails.length) * 100}%`,
             }}
           />
         </div>
@@ -188,7 +190,7 @@ const PhishingSim = () => {
               onClick={handleNext}
               className="mt-2 bg-primary text-primary-foreground px-4 py-2 rounded-md font-mono text-sm glow-primary"
             >
-              {currentIndex < phishingEmails.length - 1 ? "Next Email →" : "See Results →"}
+              {currentIndex < sessionEmails.length - 1 ? "Next Email →" : "See Results →"}
             </button>
           </div>
         )}
